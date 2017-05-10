@@ -1,3 +1,5 @@
+// Package orderedheaders provides a representation of email
+// headers and a way to read them from a textproto.Reader.
 package orderedheaders
 
 import (

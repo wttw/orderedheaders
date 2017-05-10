@@ -1,3 +1,5 @@
+[![GoDoc](https://godoc.org/github.com/wttw/orderedheaders?status.svg)](https://godoc.org/github.com/wttw/orderedheaders)
+
 # orderedheaders
 Header parsing retaining order in Go
 
