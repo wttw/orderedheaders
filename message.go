@@ -15,7 +15,7 @@ func ReadMessage(r io.Reader) (*Message, error) {
 	tp := textproto.NewReader(bufio.NewReader(r))
 
 	hdr, err := ReadHeader(tp)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
