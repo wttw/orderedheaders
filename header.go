@@ -3,6 +3,8 @@ package orderedheaders
 import (
 	"net/mail"
 	"net/textproto"
+	"regexp"
+	"strings"
 	"time"
 )
 
@@ -63,4 +65,13 @@ func (header *Header) Date() (time.Time, error) {
 		return time.Time{}, mail.ErrHeaderNotPresent
 	}
 	return mail.ParseDate(hdr)
+}
+
+var whitespaceRe = regexp.MustCompile(`[\s\p{Zs}]+`)
+
+// Normalize replaces all whitespace in a header with a single space.
+func (header *Header) Normalize() {
+	for i, kv := range header.Headers {
+		header.Headers[i].Value = strings.TrimSpace(whitespaceRe.ReplaceAllLiteralString(kv.Value, " "))
+	}
 }
