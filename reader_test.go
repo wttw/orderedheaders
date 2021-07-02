@@ -17,9 +17,9 @@ func TestReadMIMEHeader(t *testing.T) {
 	m, err := ReadHeader(r)
 	want := Header{
 		Headers: []KV{
-			KV{Key: "My-Key", Value: "Value 1"},
-			KV{Key: "Long-Key", Value: "Even Longer Value"},
-			KV{Key: "My-Key", Value: "Value 2"},
+			{Key: "My-Key", Value: "Value 1"},
+			{Key: "Long-Key", Value: "Even Longer Value"},
+			{Key: "My-Key", Value: "Value 2"},
 		},
 	}
 
@@ -33,7 +33,7 @@ func TestReadMIMEHeader(t *testing.T) {
 	}
 
 	tpm := m.ToMap()
-	if !reflect.DeepEqual(tpm, wantMap) || err != nil {
+	if !reflect.DeepEqual(tpm, wantMap) {
 		t.Fatalf("ReadMIMEHeader: %v, %v; want %v", tpm, err, wantMap)
 	}
 }
@@ -43,7 +43,7 @@ func TestReadMIMEHeaderSingle(t *testing.T) {
 	m, err := ReadHeader(r)
 	want := Header{
 		Headers: []KV{
-			KV{Key: "Foo", Value: "bar"},
+			{Key: "Foo", Value: "bar"},
 		},
 	}
 
@@ -54,7 +54,7 @@ func TestReadMIMEHeaderSingle(t *testing.T) {
 	wantMap := textproto.MIMEHeader{"Foo": {"bar"}}
 
 	tpm := m.ToMap()
-	if !reflect.DeepEqual(tpm, wantMap) || err != nil {
+	if !reflect.DeepEqual(tpm, wantMap) {
 		t.Fatalf("ReadMIMEHeader: %v, %v; want %v", tpm, err, wantMap)
 	}
 }
@@ -64,7 +64,7 @@ func TestReadMIMEHeaderNoKey(t *testing.T) {
 	m, err := ReadHeader(r)
 	want := Header{
 		Headers: []KV{
-			KV{Key: "Test-1", Value: "1"},
+			{Key: "Test-1", Value: "1"},
 		},
 	}
 
@@ -75,7 +75,7 @@ func TestReadMIMEHeaderNoKey(t *testing.T) {
 	wantMap := textproto.MIMEHeader{"Test-1": {"1"}}
 
 	tpm := m.ToMap()
-	if !reflect.DeepEqual(tpm, wantMap) || err != nil {
+	if !reflect.DeepEqual(tpm, wantMap) {
 		t.Fatalf("ReadMIMEHeader: %v, %v; want %v", tpm, err, wantMap)
 	}
 }
@@ -110,11 +110,11 @@ func TestReadMIMEHeaderNonCompliant(t *testing.T) {
 	m, err := ReadHeader(r)
 	want := Header{
 		Headers: []KV{
-			KV{Key: "Foo", Value: "bar"},
-			KV{Key: "Content-Language", Value: "en"},
-			KV{Key: "Sid", Value: "0"},
-			KV{Key: "Audio Mode", Value: "None"},
-			KV{Key: "Privilege", Value: "127"},
+			{Key: "Foo", Value: "bar"},
+			{Key: "Content-Language", Value: "en"},
+			{Key: "Sid", Value: "0"},
+			{Key: "Audio Mode", Value: "None"},
+			{Key: "Privilege", Value: "127"},
 		},
 	}
 
@@ -131,7 +131,7 @@ func TestReadMIMEHeaderNonCompliant(t *testing.T) {
 	}
 
 	tpm := m.ToMap()
-	if !reflect.DeepEqual(tpm, wantMap) || err != nil {
+	if !reflect.DeepEqual(tpm, wantMap) {
 		t.Fatalf("ReadMIMEHeader: %v, %v; want %v", tpm, err, wantMap)
 	}
 }
@@ -154,9 +154,9 @@ func TestReadMIMEHeaderTrimContinued(t *testing.T) {
 	}
 	want := Header{
 		Headers: []KV{
-			KV{Key: "A", Value: "0"},
-			KV{Key: "B", Value: "1"},
-			KV{Key: "C", Value: "2 3 4"},
+			{Key: "A", Value: "0"},
+			{Key: "B", Value: "1"},
+			{Key: "C", Value: "2 3 4"},
 		},
 	}
 
@@ -171,7 +171,7 @@ func TestReadMIMEHeaderTrimContinued(t *testing.T) {
 	}
 
 	tpm := m.ToMap()
-	if !reflect.DeepEqual(tpm, wantMap) || err != nil {
+	if !reflect.DeepEqual(tpm, wantMap) {
 		t.Fatalf("ReadMIMEHeader: %v, %v; want %v", tpm, err, wantMap)
 	}
 }
