@@ -75,3 +75,15 @@ func (h *Header) Normalize() {
 		h.Headers[i].Value = strings.TrimSpace(whitespaceRe.ReplaceAllLiteralString(kv.Value, " "))
 	}
 }
+
+// RemoveAll removes all headers with this (canonicalized) name
+func (h *Header) RemoveAll(key string) {
+	key = textproto.CanonicalMIMEHeaderKey(key)
+	filtered := h.Headers[:0]
+	for _, kv := range h.Headers {
+		if kv.Key != key {
+			filtered = append(filtered, kv)
+		}
+	}
+	h.Headers = filtered
+}
