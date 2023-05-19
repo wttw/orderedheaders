@@ -21,27 +21,27 @@ type Header struct {
 }
 
 // ToMap converts a Header to a textproto.MIMEHeader
-func (header *Header) ToMap() textproto.MIMEHeader {
+func (h *Header) ToMap() textproto.MIMEHeader {
 	m := make(textproto.MIMEHeader)
-	for _, h := range header.Headers {
+	for _, h := range h.Headers {
 		m.Add(h.Key, h.Value)
 	}
 	return m
 }
 
 // Add adds a new key, value pair to the header
-func (header *Header) Add(key, value string) {
+func (h *Header) Add(key, value string) {
 	key = textproto.CanonicalMIMEHeaderKey(key)
-	header.Headers = append(header.Headers, KV{Key: key, Value: value})
+	h.Headers = append(h.Headers, KV{Key: key, Value: value})
 }
 
 // Get gets the first value associated with the given key.
-// It is case insensitive; CanonicalMIMEHeaderKey is used
+// It is case-insensitive; CanonicalMIMEHeaderKey is used
 // to canonicalize the provided key.
 // If there are no values associated with the key, Get returns "".
-func (header *Header) Get(key string) string {
+func (h *Header) Get(key string) string {
 	key = textproto.CanonicalMIMEHeaderKey(key)
-	for _, h := range header.Headers {
+	for _, h := range h.Headers {
 		if key == h.Key {
 			return h.Value
 		}
@@ -50,8 +50,8 @@ func (header *Header) Get(key string) string {
 }
 
 // AddressList parses the named header field as a list of addresses.
-func (header *Header) AddressList(key string) ([]*mail.Address, error) {
-	hdr := header.Get(key)
+func (h *Header) AddressList(key string) ([]*mail.Address, error) {
+	hdr := h.Get(key)
 	if hdr == "" {
 		return nil, mail.ErrHeaderNotPresent
 	}
@@ -59,8 +59,8 @@ func (header *Header) AddressList(key string) ([]*mail.Address, error) {
 }
 
 // Date parses the Date header field.
-func (header *Header) Date() (time.Time, error) {
-	hdr := header.Get("Date")
+func (h *Header) Date() (time.Time, error) {
+	hdr := h.Get("Date")
 	if hdr == "" {
 		return time.Time{}, mail.ErrHeaderNotPresent
 	}
@@ -70,8 +70,8 @@ func (header *Header) Date() (time.Time, error) {
 var whitespaceRe = regexp.MustCompile(`[\s\p{Zs}]+`)
 
 // Normalize replaces all whitespace in a header with a single space.
-func (header *Header) Normalize() {
-	for i, kv := range header.Headers {
-		header.Headers[i].Value = strings.TrimSpace(whitespaceRe.ReplaceAllLiteralString(kv.Value, " "))
+func (h *Header) Normalize() {
+	for i, kv := range h.Headers {
+		h.Headers[i].Value = strings.TrimSpace(whitespaceRe.ReplaceAllLiteralString(kv.Value, " "))
 	}
 }
