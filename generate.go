@@ -135,8 +135,7 @@ func (h *Header) Set(key, value string) error {
 	return nil
 }
 
-func (h *Header) Bytes() ([]byte, error) {
-	var buff bytes.Buffer
+func (h *Header) WriteTo(w io.Writer) error {
 	seen := map[string]struct{}{}
 	for _, h := range h.Headers {
 		if h.Value == "" {
@@ -151,16 +150,25 @@ func (h *Header) Bytes() ([]byte, error) {
 				}
 				seen[h.Key] = struct{}{}
 			}
-			err := writeHeader(&buff, syn.Type, h.Key, h.Value)
+			err := writeHeader(w, syn.Type, h.Key, h.Value)
 			if err != nil {
-				return nil, fmt.Errorf("%s: %w", h.Key, err)
+				return fmt.Errorf("%s: %w", h.Key, err)
 			}
 			continue
 		}
-		err := writeHeader(&buff, HeaderTypeOpaque, h.Key, h.Value)
+		err := writeHeader(w, HeaderTypeOpaque, h.Key, h.Value)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", h.Key, err)
+			return fmt.Errorf("%s: %w", h.Key, err)
 		}
+	}
+	return nil
+}
+
+func (h *Header) Bytes() ([]byte, error) {
+	var buff bytes.Buffer
+	err := h.WriteTo(&buff)
+	if err != nil {
+		return nil, err
 	}
 	return buff.Bytes(), nil
 }
