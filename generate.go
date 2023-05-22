@@ -107,6 +107,16 @@ var HeaderSyntax = map[string]Syntax{
 	HdrContentDescription:      {Unique: true, Type: HeaderTypeUnstructured},
 }
 
+// Options configures how a set of headers will be rendered.
+type Options struct {
+	// RenderBCC enables rendering the Bcc: header, which is ignored by default
+	RenderBCC bool
+	// RenderBlank enables rendering headers which have zero length content
+	RenderBlank bool
+	// NoEscape disables encoding of non-ASCI content in a header
+	NoEscape bool
+}
+
 // Set sets a standard header, replacing any existing one. It only accepts
 // standard email headers, not extensions.
 func (h *Header) Set(key, value string) error {
@@ -115,9 +125,11 @@ func (h *Header) Set(key, value string) error {
 	if !ok {
 		return fmt.Errorf("%s is not a standard email header", canonKey)
 	}
-	err := checkHeader(syntax.Type, value)
-	if err != nil {
-		return fmt.Errorf("invalid value for %s: %w", value, err)
+	if value != "" {
+		err := checkHeader(syntax.Type, value)
+		if err != nil {
+			return fmt.Errorf("invalid value for %s: %w", key, err)
+		}
 	}
 	for i, v := range h.Headers {
 		if v.Key == canonKey {
@@ -135,10 +147,13 @@ func (h *Header) Set(key, value string) error {
 	return nil
 }
 
-func (h *Header) WriteTo(w io.Writer) error {
+func (h *Header) WriteTo(w io.Writer, o Options) error {
 	seen := map[string]struct{}{}
 	for _, h := range h.Headers {
-		if h.Value == "" {
+		if !o.RenderBlank && h.Value == "" {
+			continue
+		}
+		if h.Key == "Bcc" && !o.RenderBCC {
 			continue
 		}
 		syn, ok := HeaderSyntax[h.Key]
@@ -150,13 +165,13 @@ func (h *Header) WriteTo(w io.Writer) error {
 				}
 				seen[h.Key] = struct{}{}
 			}
-			err := writeHeader(w, syn.Type, h.Key, h.Value)
+			err := writeHeader(w, syn.Type, h.Key, h.Value, o)
 			if err != nil {
 				return fmt.Errorf("%s: %w", h.Key, err)
 			}
 			continue
 		}
-		err := writeHeader(w, HeaderTypeOpaque, h.Key, h.Value)
+		err := writeHeader(w, HeaderTypeOpaque, h.Key, h.Value, o)
 		if err != nil {
 			return fmt.Errorf("%s: %w", h.Key, err)
 		}
@@ -164,9 +179,9 @@ func (h *Header) WriteTo(w io.Writer) error {
 	return nil
 }
 
-func (h *Header) Bytes() ([]byte, error) {
+func (h *Header) Bytes(o Options) ([]byte, error) {
 	var buff bytes.Buffer
-	err := h.WriteTo(&buff)
+	err := h.WriteTo(&buff, o)
 	if err != nil {
 		return nil, err
 	}
@@ -258,7 +273,7 @@ func validMessageIdList(s string) error {
 	return nil
 }
 
-func writeHeader(w io.Writer, headerType HeaderType, key, value string) error {
+func writeHeader(w io.Writer, headerType HeaderType, key, value string, o Options) error {
 	value = strings.TrimSpace(value)
 	column := len(key) + 2
 	if _, err := io.WriteString(w, key); err != nil {
@@ -269,18 +284,20 @@ func writeHeader(w io.Writer, headerType HeaderType, key, value string) error {
 	}
 	switch headerType {
 	case HeaderTypeUnstructured, HeaderTypePhraseList:
-		if !isAscii(value) {
+		if !isAscii(value) && !o.NoEscape {
 			value = mime.QEncoding.Encode(utf8, value)
 		}
 	case HeaderTypeOpaque, HeaderTypeReceived, HeaderTypeReturnPath, HeaderTypeDate, HeaderTypeMessageID, HeaderTypeMessageIDList:
 	// do nothing
 	case HeaderTypeMailbox:
+		// TODO(steve): implement non-escaped version
 		addr, err := mail.ParseAddress(value)
 		if err != nil {
 			return err
 		}
 		value = addr.String()
 	case HeaderTypeMailboxList:
+		// TODO(steve): implement non-escaped version
 		addrs, err := mail.ParseAddressList(value)
 		if err != nil {
 			return err

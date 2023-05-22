@@ -49,7 +49,7 @@ func TestSet_Singles(t *testing.T) {
 					return
 				}
 			}
-			got, err := h.Bytes()
+			got, err := h.Bytes(Options{})
 			if test.WantError {
 				t.Errorf("expected error, didn't get one")
 			} else {
