@@ -339,9 +339,9 @@ func writeHeader(w io.Writer, headerType HeaderType, key, value string, o Option
 		}
 		if v == '\r' || v == '\n' {
 			tok := val[tokenStart:i]
-			tokenStart = i
 			for ; i < len(val) && (val[i] == '\r' || val[i] == '\n'); i++ {
 			}
+			tokenStart = i
 			if len(tok) > 0 {
 				_, err := w.Write(tok)
 				column += len(tok)
@@ -354,15 +354,17 @@ func writeHeader(w io.Writer, headerType HeaderType, key, value string, o Option
 				}
 				switch val[i] {
 				case ' ', '\t':
-					_, err = w.Write([]byte{'\r', '\n', val[i]})
-					i++
+					// If user provided value includes whitespace, use that instead of a tab
+					_, err = w.Write([]byte{'\r', '\n'})
+					column = 0
 				default:
+					// Pad the continued line with a tab
 					_, err = w.Write([]byte{'\r', '\n', '\t'})
+					column = 1
 				}
 				if err != nil {
 					return err
 				}
-				column = 1
 			}
 		}
 		if v == ' ' || v == '\t' || v == '\v' || v == '\f' {
@@ -384,7 +386,7 @@ func writeHeader(w io.Writer, headerType HeaderType, key, value string, o Option
 	}
 	if tokenStart < len(val) {
 		tok := val[tokenStart:]
-		if column+len(tok) > 78 && tokenStart != 0 {
+		if column+len(tok) > 78 && tokenStart != 0 && column > 1 {
 			_, err := w.Write([]byte{'\r', '\n'})
 			if err != nil {
 				return err

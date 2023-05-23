@@ -33,6 +33,11 @@ func TestSet_Singles(t *testing.T) {
 				{"subject", "abcdefghi123456798abcdefghi123456798abcdefghi123456798abcdefghi123456798abcdefghi 123456798 "},
 			}, false, "Subject: abcdefghi123456798abcdefghi123456798abcdefghi123456798abcdefghi123456798abcdefghi\r\n 123456798\r\n",
 		},
+		"embededcrlf": {
+			[]KV{
+				{"Content-Type", "multipart/alternative;\r\n boundary=fooabcdefghi123456798abcdefghi123456798abcdefghi123456798abcdefghi123456798"},
+			}, false, "Content-Type: multipart/alternative;\r\n boundary=fooabcdefghi123456798abcdefghi123456798abcdefghi123456798abcdefghi123456798\r\n",
+		},
 		"i18n": {
 			[]KV{
 				{"subject", "Síneadh Fada"},
