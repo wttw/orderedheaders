@@ -10,14 +10,14 @@ import (
 
 // A KV represents a single mime header
 type KV struct {
-	Key   string
-	Value string
+	Key   string `json:"key"`
+	Value string `json:"value"`
 }
 
 // A Header represents a MIME-style header consisting
 // of a list of key, value pairs
 type Header struct {
-	Headers []KV
+	Headers []KV `json:"headers"`
 }
 
 // ToMap converts a Header to a textproto.MIMEHeader
@@ -47,6 +47,17 @@ func (h *Header) Get(key string) string {
 		}
 	}
 	return ""
+}
+
+// Has returns true if the header specified exists.
+func (h *Header) Has(key string) bool {
+	key = textproto.CanonicalMIMEHeaderKey(key)
+	for _, h := range h.Headers {
+		if key == h.Key {
+			return true
+		}
+	}
+	return false
 }
 
 // AddressList parses the named header field as a list of addresses.

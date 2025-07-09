@@ -115,6 +115,8 @@ type Options struct {
 	RenderBlank bool
 	// NoEscape disables encoding of non-ASCI content in a header
 	NoEscape bool
+	// RenderReturnPath enables rendering the Return-Path: header, which is ignored by default
+	RenderReturnPath bool
 }
 
 // Set sets a standard header, replacing any existing one. It only accepts
@@ -153,7 +155,10 @@ func (h *Header) WriteTo(w io.Writer, o Options) error {
 		if !o.RenderBlank && h.Value == "" {
 			continue
 		}
-		if h.Key == "Bcc" && !o.RenderBCC {
+		if h.Key == HdrBcc && !o.RenderBCC {
+			continue
+		}
+		if h.Key == HdrReturnPath && !o.RenderReturnPath {
 			continue
 		}
 		syn, ok := HeaderSyntax[h.Key]
@@ -186,6 +191,14 @@ func (h *Header) Bytes(o Options) ([]byte, error) {
 		return nil, err
 	}
 	return buff.Bytes(), nil
+}
+
+func Check(name, value string) error {
+	headerType, ok := HeaderSyntax[textproto.CanonicalMIMEHeaderKey(name)]
+	if !ok {
+		return nil
+	}
+	return checkHeader(headerType.Type, value)
 }
 
 func checkHeader(headerType HeaderType, value string) error {
